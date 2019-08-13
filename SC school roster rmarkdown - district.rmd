@@ -1,0 +1,388 @@
+---
+title: "Scince school roster"
+author: "ZexuChen"
+date: "August 1, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+########## packages required in the program  ########## 
+library(pdftools)   ## deal with pdf files
+library(stringr)    ## string operation
+library(stringi)     ## string operation
+library(readxl)
+library(dplyr)
+library(tidyr)     
+library(readr)
+library(xlsx)
+
+
+```
+
+
+```{r}
+
+rm(list = ls())
+setwd("F:\\MFDM\\ZexuChen\\School Roster LEAP 3-8\\Science1")
+list_sc <- list.files( pattern = ".{3}SCIRosterLEAP.pdf")
+
+raw_sc<-list()
+for(i in 1:length(list_sc))
+{
+  raw_sc[[i]] <- pdf_text(list_sc[i])
+}
+```
+
+
+
+```{r}
+
+df_sc1 <- function(raw_sc){
+
+            GRADE <- substring(str_extract(raw_sc, "Spring 2019\r\nGrade:\\s[A-Z]?\\d+"),
+                                 nchar("Spring 2019\r\nGrade:")+1)
+            SCHOOLCODE <- str_trim(substr(str_trim(str_extract(raw_sc, "\\School:\\s.+\\r\n")), 9, 12))
+            SCHOOLNAME <-  str_trim(substr(str_trim(str_extract(raw_sc, "\\School:\\s.+\\r\n")), 13, 70))
+            DISTRICTCODE <- str_trim(substr(str_trim(str_extract(raw_sc, "\\School System:\\s.+\\r\n")), 15, 18))
+            DISTRICTNAME <- str_trim(substr(str_trim(str_extract(raw_sc, "\\School System:\\s.+\\r\n")), 19, 80)) 
+            REPORTDATE <- str_trim(substr(raw_sc,regexpr("Report Date:", raw_sc)+nchar("Report Date:"),
+                                          regexpr("Report Date:", raw_sc)+ nchar("Report Date:")+20))                    
+            
+	        	SCH_ADV <-as.numeric(str_trim(substring(str_extract(raw_sc,"Evaluate\\r\\n\\s+Advanced\\s+\\d+"),
+		                                      nchar(str_extract(raw_sc,"Evaluate\\r\\n\\s+Advanced\\s+"))+1)))
+
+
+	
+	            
+            SCH_MAS <- as.numeric(str_trim(substr(raw_sc,regexpr("Mastery", raw_sc)+nchar("Mastery"),
+                                                  regexpr("Mastery", raw_sc)+nchar("Mastery")+50)))
+            SCH_BAS <- as.numeric(str_trim(substr(raw_sc,regexpr("Basic", raw_sc)+nchar("Basic"),
+                                                  regexpr("Basic", raw_sc)+nchar("Basic")+50)))
+            SCH_APP <- as.numeric(str_trim(substr(raw_sc,regexpr("Approaching Basic",
+                                                                 raw_sc)+nchar("Approaching Basic"), regexpr("Approaching Basic", raw_sc)+nchar("Approaching Basic")+50)))
+            SCH_UNS <- as.numeric(str_trim(substr(raw_sc,regexpr("Unsatisfactory",
+                                                                 raw_sc)+nchar("Unsatisfactory"), regexpr("Unsatisfactory", raw_sc)+nchar("AUnsatisfactory")+50)))
+            SCH_AVG <- as.numeric(str_trim(substr(raw_sc,
+                                                  regexpr("School Average \\(All Students\\)\r\n", raw_sc)+nchar("School Average \\(All Students\\)\r\n"),
+                                                  regexpr("School Average \\(All Students\\)\r\n", raw_sc)+nchar("School Average \\(All Students\\)\r\n")+300)))
+            
+
+            INV_S <- as.numeric(str_trim(substr(raw_sc,regexpr("Strong \\(S\\)", raw_sc)+nchar("Strong \\(S\\)"), 
+                                                regexpr("Strong \\(S\\)", raw_sc)+ nchar("Strong \\(S\\)")+30)))
+            
+	        	EVA_S <- as.numeric(str_trim(substr(raw_sc,regexpr("Strong \\(S\\)", raw_sc)+
+		                                       nchar("Strong \\(S\\)")+30, regexpr("Strong \\(S\\)", raw_sc)+ nchar("Strong \\(S\\)")+45)))
+	        	REA_S <- as.numeric(str_trim(substr(raw_sc,regexpr("Strong \\(S\\)", raw_sc)+
+		                                       nchar("Strong \\(S\\)")+45, regexpr("Strong \\(S\\)", raw_sc)+ nchar("Strong \\(S\\)")+65)))
+	        
+	        	
+            
+            INV_M <- as.numeric(str_trim(substr(raw_sc,regexpr("Moderate \\(M\\)", raw_sc)+nchar("Moderate \\(M\\)"), regexpr("Moderate \\(M\\)", raw_sc)+ 
+                                                  nchar("Moderate \\(M\\)")+30)))
+	        	EVA_M <- as.numeric(str_trim(substr(raw_sc,regexpr("Moderate \\(M\\)", raw_sc)+
+		                                       nchar("Moderate \\(M\\)")+30, regexpr("Moderate \\(M\\)", raw_sc)+ nchar("Moderate \\(M\\)")+45)))
+            REA_M <- as.numeric(str_trim(substr(raw_sc,regexpr("Moderate \\(M\\)", raw_sc)+nchar("Moderate \\(M\\)")+45, regexpr("Moderate \\(M\\)", raw_sc)+ 
+                                                   nchar("Moderate \\(M\\)")+65)))
+           
+		
+
+            INV_W <- as.numeric(str_trim(substr(raw_sc,regexpr("Weak \\(W\\)", raw_sc)+nchar("Weak \\(W\\)"), regexpr("Weak \\(W\\)", raw_sc)+ nchar("Weak \\(W\\)")+30)))
+	        	EVA_W <- as.numeric(str_trim(substr(raw_sc,regexpr("Weak \\(W\\)", raw_sc)+nchar("Weak \\(W\\)")+30, regexpr("Weak \\(W\\)", raw_sc)+ nchar("Weak \\(W\\)")+45)))
+            REA_W <- as.numeric(str_trim(substr(raw_sc,regexpr("Weak \\(W\\)", raw_sc)+nchar("Weak \\(W\\)")+45, regexpr("Weak \\(W\\)", raw_sc)+ nchar("Weak \\(W\\)")+65)))
+            
+
+		
+            
+           df <- data.frame(
+                    
+                    GRADE,
+                    DISTRICTCODE,
+                    DISTRICTNAME,
+                    SCHOOLCODE,
+                    SCHOOLNAME,
+
+                    SCH_AVG, 
+                    SCH_ADV, SCH_MAS, SCH_BAS, SCH_APP, SCH_UNS,
+                    INV_S, INV_M, INV_W, 
+                    EVA_S, EVA_M, EVA_W, 
+                    REA_S, REA_M,  REA_W
+                   
+            )
+      df
+    }
+
+
+
+		
+```
+
+
+```{r}
+  sch_sc_v1 <- data.frame()
+
+
+	for(i in 1:length(list_sc))
+	{
+  sch_sc_v1 <- rbind(sch_sc_v1,df_sc1(raw_sc[[i]]))
+	}
+		
+```
+
+
+```{r}
+    
+sch_sc_v1_1st_r <-   sch_sc_v1 %>%
+group_by(GRADE, DISTRICTCODE, SCHOOLCODE, SCHOOLNAME) %>%
+arrange(GRADE, DISTRICTCODE, SCHOOLCODE, SCHOOLNAME) %>%
+filter(row_number()==1)
+
+sch_sc_v1_1st_r[is.na(sch_sc_v1_1st_r)] <- '' 
+		
+```
+
+
+```{r}
+  
+setwd("F:\\MFDM\\ZexuChen\\School Roster LEAP 3-8\\R")   
+
+write.csv(sch_sc_v1_1st_r, 'dist_sch_sc_drc.csv', row.names=FALSE)
+
+
+
+
+		
+```
+
+
+```{r}
+ ############          student          ######### 
+
+
+df_sc2 <- function(raw_sc){ 
+
+            GRADE <- str_trim(substring(str_extract(raw_sc, "Spring 2019\r\nGrade:\\s[A-Z]?\\d+"), nchar("Spring 2019\r\nGrade:")+1))
+            SCHOOLCODE <- str_trim(substr(str_trim(str_extract(raw_sc, "\\School:\\s.+\\r\n")), 9, 12))
+            SCHOOLNAME <-  str_trim(substr(str_trim(str_extract(raw_sc, "\\School:\\s.+\\r\n")), 13, 70))
+
+            DISTRICTCODE <- str_trim(substr(str_trim(str_extract(raw_sc, "\\School System:\\s.+\\r\n")), 15, 18))
+            DISTRICTNAME <- str_trim(substr(str_trim(str_extract(raw_sc, "\\School System:\\s.+\\r\n")), 19, 80)) 
+	        	EDU_CLS <- str_trim(substr(raw_sc,regexpr("Education Students", raw_sc)-45, regexpr("Education Students", raw_sc)+ nchar("Education Students")))
+           	MIX <- str_trim(sapply(str_extract_all(raw_sc, "\\s[A-Z]+.?.?[A-Z]*,.?[A-Z]+.?[A-Z]*.?\\s.+\\r\\n"), paste, collapse= '~~~'))
+ 
+           	
+          df <- data.frame(
+                    GRADE,
+                    DISTRICTCODE,
+                    DISTRICTNAME,
+                    SCHOOLCODE,
+                    SCHOOLNAME,
+                    EDU_CLS, MIX
+                )
+       df    
+    }
+
+
+
+		
+```
+
+
+```{r}
+
+  std_sc <- data.frame()
+
+
+	for(i in 1:length(list_sc))
+	{
+  std_sc <- rbind(std_sc,df_sc2(raw_sc[[i]]))
+	}
+
+
+		
+```
+
+
+```{r}
+  
+    std_sc_non1st_r <-   std_sc %>%
+    group_by(GRADE, DISTRICTCODE, SCHOOLCODE, SCHOOLNAME) %>%
+
+    arrange(GRADE, DISTRICTCODE, SCHOOLCODE, SCHOOLNAME) %>%
+    filter(row_number()!=1)
+		
+```
+
+
+```{r}
+    
+   ################ split the variable by ~~~ into a list  ################
+
+
+    temp <- strsplit(as.character(std_sc_non1st_r$MIX), split="\r\n~~~")
+    TOGETHER= str_trim(unlist(temp))
+
+  	rest<-str_trim( str_extract(TOGETHER, "\\s{3}[[:upper:]].{3}\\s.+"))
+   	restscore<-str_trim( substring( rest,regexpr("\\s\\d",rest)))
+   	restlast<-substring(restscore,regexpr("[[:upper:]]",restscore))
+  	
+	  restach<-substring(str_trim(str_extract(TOGETHER,"\\s\\w{5}\\d{5}.+|[[:punct:]]{10}.+")),11)
+   	LASID =str_trim( str_extract(TOGETHER,"\\s\\w{5}\\d{5}|[[:punct:]]{10}"))
+  	LASID [is.na(LASID )] <- ''
+		
+```
+
+
+```{r}
+     ################ form new data.frame   ################
+    std_sc_long <- data.frame(
+          GRADE = rep(std_sc_non1st_r$GRADE, sapply(temp, length)),
+          DISTRICTCODE = rep(std_sc_non1st_r$DISTRICTCODE, sapply(temp, length)), 
+          DISTRICTNAME = rep(std_sc_non1st_r$DISTRICTNAME, sapply(temp, length)),
+          SCHOOLCODE = rep(std_sc_non1st_r$SCHOOLCODE, sapply(temp, length)), 
+          SCHOOLNAME = rep(std_sc_non1st_r$SCHOOLNAME, sapply(temp, length)),
+          EDU_CLS = rep(std_sc_non1st_r$EDU_CLS, sapply(temp, length)),
+          NAME = str_trim(str_extract(TOGETHER, "[A-Z]+.?.?[A-Z]*,.?[A-Z]+.?[A-Z]*.?\\s")),	  
+	        LASID,
+	      	ACH = str_trim(substr(rest, 1,3)),
+	      	SCORE=str_extract(restach,"\\d{1,3}|\\*"),
+	      	
+	      	Investigate = str_split(restlast, boundary("word"), simplify = T)[,1],
+          Evaluate= str_split(restlast, boundary("word"), simplify = T)[,2],
+          ReasonScientifically= str_split(restlast, boundary("word"), simplify = T)[,3]
+        
+           	 )
+		
+```
+
+
+```{r}
+     
+     ################ keep NAME as the same format as in LDESTD file  ################
+     std_sc_long_div <- separate(std_sc_long, NAME, c("LASTNAME", "FIRSTNAME"), sep = ", ")
+
+     #########   only show first 12 character of lastname, first 8 for firstname   ############
+     std_sc_long_div$LASTNAME <- substr(std_sc_long_div$LASTNAME,1,12)
+     std_sc_long_div$FIRSTNAME <- substr(std_sc_long_div$FIRSTNAME,1,8)
+    
+
+
+```
+
+
+```{r}
+
+  ################### extract students without names    ##################
+
+
+    df_sc3 <- function(raw_sc){
+
+           
+            GRADE <- str_trim(substring(str_extract(raw_sc, "Spring 2019\r\nGrade:\\s[A-Z]?\\d+"),
+                                        nchar("Spring 2019\r\nGrade:")+1))
+            SCHOOLCODE <- str_trim(substring(str_extract(raw_sc, "School:\\s\\d+"),
+                                             nchar("School: ")+1))
+           
+  	      	SCHOOLNAME <- str_trim(substring(str_extract(raw_sc, "School:\\s\\d+.+"), 
+  	  	                                 nchar("School: ")+1+nchar(SCHOOLCODE)+1))
+            DISTRICTCODE <- str_trim(substring(str_extract(raw_sc, "School System:\\s\\S+"),
+                                               nchar("School System: ")+1))
+  	        DISTRICTNAME <- str_trim(substring(str_extract(raw_sc, "School System:\\s.\\S+.+"),
+  	                                         nchar("School System: ")+1+nchar(DISTRICTCODE)+1))
+
+            EDU_CLS <- str_trim(substr(raw_sc,regexpr("Education Students", raw_sc)-45,
+                                       regexpr("Education Students", raw_sc)+ nchar("Education Students")))
+            MIX <- str_trim(sapply(str_extract_all(raw_sc, "\\s.NO NAME PROVIDED\\s.+\\r\n."),
+                                    paste, collapse= '~~~'))
+                                    
+            df <- data.frame(
+                    GRADE,
+                    DISTRICTCODE,
+                    DISTRICTNAME,
+                    SCHOOLCODE,
+                    SCHOOLNAME,
+                    EDU_CLS, MIX
+           )
+       df    
+    }
+
+		
+```
+
+
+```{r}
+
+  std_sc_noname <- data.frame()
+
+
+	for(i in 1:length(list_sc))
+	{
+  std_sc_noname <- rbind(std_sc_noname,df_sc3(raw_sc[[i]]))
+	}
+
+		
+```
+
+
+```{r}        
+     std_sc_noname <- unique(std_sc_noname[ , 1:7] )
+
+     std_sc_noname <- subset(std_sc_noname, MIX != "")
+     temp_nn <- strsplit(as.character(std_sc_noname$MIX), split="~~~")
+     TOGETHER_NM = str_trim(unlist(temp_nn))
+ 
+```
+
+
+```{r}      
+     
+     std_sc_noname_long <- data.frame(
+         
+          GRADE = rep(std_sc_noname$GRADE, sapply(temp_nn, length)),
+          DISTRICTCODE = rep(std_sc_noname$DISTRICTCODE, sapply(temp_nn, length)), 
+          DISTRICTNAME = rep(std_sc_noname$DISTRICTNAME, sapply(temp_nn, length)),
+          SCHOOLCODE = rep(std_sc_noname$SCHOOLCODE, sapply(temp_nn, length)), 
+          SCHOOLNAME = rep(std_sc_noname$SCHOOLNAME, sapply(temp_nn, length)),
+          EDU_CLS = rep(std_sc_noname$EDU_CLS, sapply(temp_nn, length)),
+          LASTNAME = str_trim(substr(TOGETHER_NM, 1,20)),
+          FIRSTNAME = '',
+          LASID = str_trim(substr(TOGETHER_NM, 31,60)),
+          
+          ACH = str_trim(substr(TOGETHER_NM, 61,80)),
+          SCORE = str_trim(substr(TOGETHER_NM, 81,96)),
+          
+          Investigate = str_trim(substr(TOGETHER_NM, 97,125)),
+          Evaluate = str_trim(substr(TOGETHER_NM,125,135)),
+          ReasonScientifically = str_trim(substr(TOGETHER_NM,135,145))
+          
+                      )
+     
+		
+```
+
+
+```{r}
+
+std_sc_drc <- rbind(std_sc_noname_long,std_sc_long_div)
+     
+std_sc_drc[is.na(std_sc_drc)] <- ''  
+
+setwd('F:\\MFDM\\ZexuChen\\School Roster LEAP 3-8\\R')
+write.csv( std_sc_drc, "dist_std_sc_drc.csv", row.names=FALSE)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
