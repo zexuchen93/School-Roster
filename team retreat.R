@@ -9,7 +9,7 @@ library(xlsx)
 
 rm(list = ls())
 
-setwd("F:/MFDM/Luquan/data request/split files for team retreat/data")
+setwd("F:/MFDM/ZChen/data request/split files for team retreat/data")
 
 ##data<-read.csv("RawData_2019-2020 Team Retreat_Rotations.csv",1)
 data<-read.xlsx("data.xlsx",1)
