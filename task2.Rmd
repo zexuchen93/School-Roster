@@ -1,0 +1,79 @@
+---
+title: "task2"
+author: "ZexuChen"
+date: "October 3, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(pdftools)   ## deal with pdf files
+library(stringr)    ## string operation
+library(readxl)
+library(dplyr)
+library(xlsx)
+library(tidyr)
+```
+
+```{r}
+rm(list = ls())
+setwd("C:\\Users\\ZChen\\Documents\\for next int\\wf")
+```
+
+
+```
+{r}
+# Read in the data
+x <- scan("ClassFile.txt", what="", sep="\n")
+# Separate elements by one or more whitepace
+y <- strsplit(x, "[[:space:]]+")
+data<-y
+```
+
+
+```{r}
+t <- read.table("ClassFile.txt", header=F)
+```
+
+
+```{r}
+t2<-data.frame(t)
+```
+
+
+```
+{r}
+t2<-t1[1:100,]
+```
+
+
+```{r}
+# Rename a column in R
+colnames(t2)[1] <- "allcols"
+colnames(t2)[2] <- "StudentCount"
+```
+
+
+
+```{r}
+SchoolCode<-substr(t2[,1], 1, 6)
+CourseCd<-substr(t2[,1],7,12)
+ClassroomCd<-substr(t2[,1],13, 40)
+```
+
+
+
+```{r}
+final1<-data.frame(SchoolCode, CourseCd, ClassroomCd)
+final<-cbind(final1, t2[2])
+final
+```
+
+```{r}
+ # Writing out R object 'data' in an Excel file created namely data.xlsx 
+write.table(final,"ans.txt",sep="\t",row.names=FALSE)
+```
+
+
+
+
+
